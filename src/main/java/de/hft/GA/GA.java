@@ -1,4 +1,3 @@
-
 package de.hft.GA;
 
 import java.net.URI;
@@ -20,25 +19,24 @@ import org.json.JSONObject;
 import de.hft.gradingassistant.GradingAssistantForFreeTextAnswers;
 import de.hft.gradingassistant.record.*;
 
-
 /**
  * This file defines the grading assistant resource class (to be hosted at the URI path "/gradingassistant")
  * 
- * 
  * @copyright 2014 HFT Stuttgart
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author	Cornelia Kiefer
+ * @author	Cornelia Kiefer, Verena Meyer
  */
 
 @Path("/gradingassistant")
 public class GA {  
    
+	//TODO: Index for what?
     private int index = 0;
 	
 	@Context
 	UriInfo uriInfo;
 
-  
+	//Test if WebService is running.
 	@GET
     @Path("/ping")
     @Produces(MediaType.TEXT_PLAIN)
@@ -50,10 +48,9 @@ public class GA {
     @Path("/post")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response postAPostedRecord(String json) {    	
-    		    	
+
     	//transform the json formatted String entry to a ListOfPostedRecords    	
     	de.hft.gradingassistant.record.ListOfPostedRecords listOfPR = new de.hft.gradingassistant.record.ListOfPostedRecords();
-		  
     		//create a JSONObject from argument String
 			JSONObject obj = null;
 			try {
@@ -71,31 +68,23 @@ public class GA {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
 			//for each element in this array, collect field infos
-			for (int i = 0; i < arr.length(); i++)
-			{
-			    try {
-			    	int id = arr.getJSONObject(i).getInt("id");					
-					String question = arr.getJSONObject(i).getString("question");
-					String referenceanswer = arr.getJSONObject(i).getString("referenceanswer");
-					String answer = arr.getJSONObject(i).getString("answer");
-					int max = arr.getJSONObject(i).getInt("max");			
-					int min = arr.getJSONObject(i).getInt("min");
-					int sec = arr.getJSONObject(i).getInt("sec");
-					int numAttempts = arr.getJSONObject(i).getInt("numAttempts");
-										
+			for (int i = 0; i < arr.length(); i++) {
+
+				try {
 					PostedRecord pr = new PostedRecord();
 					
-					pr.studentId = "s" + id;
-					pr.id = id; 
-					pr.question = question;
-					pr.referenceanswer0 = referenceanswer;
-					pr.answer = answer;
-					pr.max = max;
-					pr.min = min;
-					pr.sec = sec;
-					pr.numAttempts = numAttempts;
+					pr.getPostedRecordString().put("studentId", "s" + arr.getJSONObject(i).getInt("id"));
+					pr.getPostedRecordString().put("question", arr.getJSONObject(i).getString("question"));
+					pr.getPostedRecordString().put("answer", arr.getJSONObject(i).getString("answer"));
+					pr.getPostedRecordString().put("refAnswer", arr.getJSONObject(i).getString("referenceanswer"));
+					pr.getPostedRecordString().put("languageFlag", "de");
+
+					pr.getPostedRecordInt().put("id", arr.getJSONObject(i).getInt("id"));
+					pr.getPostedRecordInt().put("max", arr.getJSONObject(i).getInt("max"));
+					pr.getPostedRecordInt().put("min", arr.getJSONObject(i).getInt("min"));
+					pr.getPostedRecordInt().put("sec", arr.getJSONObject(i).getInt("sec"));
+					pr.getPostedRecordInt().put("numAttepts", arr.getJSONObject(i).getInt("numAttempts"));
 					
 					listOfPR.getEntry().add(pr);
 					
@@ -103,7 +92,6 @@ public class GA {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			}
 			
 			URI location = addEntry(listOfPR); 
@@ -111,12 +99,12 @@ public class GA {
 			GradingAssistantForFreeTextAnswers ga = new GradingAssistantForFreeTextAnswers();
 			ga.readPostedRecords(listOfPR);
 			
-			if(arr.length()>1){	//more than one student answer: sort	
+			if (arr.length()>1) {	//more than one student answer: sort	
 									
 			   	ga.doAnalysis();		   	
 			   	result = ga.getAnalyzedRecordsAsJSONString();
 			   	
-			} else { //less than one student answer: no sorting
+			} else { //less than one student answer: no sorting required
 				result =ga.getListOfPRAsJSONString();
 			}
 		
@@ -124,20 +112,17 @@ public class GA {
 	 		return Response.created(location).entity(result).build();
  		 		
 	}
-    
-    
-    private URI addEntry(ListOfPostedRecords l) {
+
+    private URI addEntry(ListOfPostedRecords listOfPR) {
 		
 		// create location of new resource
-		URI location = uriInfo.getAbsolutePathBuilder()
-				.path("" + index).build();
+		URI location = uriInfo.getAbsolutePathBuilder().path("" + index).build();
 		
 		index++;
 		// set location as href
-		l.setHref(location.toString());		
+		listOfPR.setHref(location.toString());		
 		
 		// return new location
 		return location;
 	}
-
 }
