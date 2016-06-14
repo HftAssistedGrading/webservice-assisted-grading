@@ -68,18 +68,22 @@ public class GA {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			//String[] refa = {};
 			//for each element in this array, collect field infos
 			for (int i = 0; i < arr.length(); i++) {
 
 				try {
 					PostedRecord pr = new PostedRecord();
 					
+					//refa = arr.getJSONObject(i).getString("referenceanswer").split("\\n");
 					pr.getPostedRecordString().put("studentId", "s" + arr.getJSONObject(i).getInt("id"));
 					pr.getPostedRecordString().put("question", arr.getJSONObject(i).getString("question"));
 					pr.getPostedRecordString().put("answer", arr.getJSONObject(i).getString("answer"));
 					pr.getPostedRecordString().put("refAnswer", arr.getJSONObject(i).getString("referenceanswer"));
-					pr.getPostedRecordString().put("languageFlag", "de");
-
+					pr.getPostedRecordString().put("languageFlag", arr.getJSONObject(i).getString("languageoptions"));
+					
+					pr.getPostedRecordDouble().put("threshold", arr.getJSONObject(i).getDouble("threshold"));
 					pr.getPostedRecordInt().put("id", arr.getJSONObject(i).getInt("id"));
 					pr.getPostedRecordInt().put("max", arr.getJSONObject(i).getInt("max"));
 					pr.getPostedRecordInt().put("min", arr.getJSONObject(i).getInt("min"));
@@ -99,7 +103,7 @@ public class GA {
 			GradingAssistantForFreeTextAnswers ga = new GradingAssistantForFreeTextAnswers();
 			ga.readPostedRecords(listOfPR);
 			
-			if (arr.length()>1) {	//more than one student answer: sort	
+			if (arr.length()>=1) {	//more than one student answer: sort	
 									
 			   	ga.doAnalysis();		   	
 			   	result = ga.getAnalyzedRecordsAsJSONString();
